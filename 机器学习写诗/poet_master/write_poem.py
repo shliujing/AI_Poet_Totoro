@@ -3,8 +3,8 @@ import os, sys,time
 import logging
 import math
 import numpy as np
-# import tensorflow as tf
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
+tf.compat.v1.disable_v2_behavior
 from char_rnn_model import CharRNNLM,SampleType
 from config_poem import config_sample
 from word2vec_helper import Word2Vec
@@ -46,7 +46,7 @@ class  WritePoem():
         w2v_vocab_size = len(self.w2v.model.vocab)
         with tf.name_scope('evaluation'):
             self.model = CharRNNLM(is_training=False,w2v_model = self.w2v.model,vocab_size=w2v_vocab_size, infer=True, **params)
-            saver = tf.train.Saver(name='model_saver')
+            saver = tf.compat.v1.train.Saver(name='model_saver')
             saver.restore(self.sess, best_model)
 
     def free_verse(self):

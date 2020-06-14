@@ -3,6 +3,7 @@
 import os
 import sys
 import tensorflow as tf
+tf.disable_v2_behavior()
 import numpy as np
 import argparse
 import random
@@ -12,14 +13,13 @@ import collections
 # 不断测试发现250次训练就基本上拟合好了
 batchSize = 64            # 每次batch大小
 epochNum = 250            # 继续训练多少个epoch
-generateNum = 5           # 每次生成诗歌数量
+generateNum = 50           # 每次生成诗歌数量
 saveStep = 200             # 多少个batch保存一次checkpoint
 trainRatio = 0.8           # 训练率
 
 learningRateBase = 0.001
 learningRateDecayStep = 500
 learningRateDecayRate = 0.95
-
 
 class POEMS:
     "poem class"

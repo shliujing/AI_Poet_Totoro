@@ -3,8 +3,8 @@ import time
 from enum import Enum
 import heapq
 import numpy as np
-# import tensorflow as tf
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
+tf.compat.v1.disable_v2_behavior
 from rhyme_helper import RhymeWords
 import os
 
@@ -38,8 +38,8 @@ class CharRNNLM(object):
         else:
             self.input_size = embedding_size
 
-        self.input_data = tf.placeholder(tf.int64, [self.batch_size, self.num_unrollings], name='inputs')
-        self.targets =  tf.placeholder(tf.int64, [self.batch_size, self.num_unrollings], name='targets')
+        self.input_data =tf.compat.v1.placeholder(tf.int64, [self.batch_size, self.num_unrollings], name='inputs')
+        self.targets = tf.compat.v1.placeholder(tf.int64, [self.batch_size, self.num_unrollings], name='targets')
 
         if self.cell_type == 'rnn':
             cell_fn = tf.nn.rnn_cell.BasicRNNCell
@@ -75,16 +75,16 @@ class CharRNNLM(object):
             elif self.cell_type == 'lstm':
                 self.initial_state = tuple(
                         [tf.nn.rnn_cell.LSTMStateTuple(
-                            tf.placeholder(tf.float32, [self.batch_size, multi_cell.state_size[idx][0]],
+                           tf.compat.v1.placeholder(tf.float32, [self.batch_size, multi_cell.state_size[idx][0]],
                                           'initial_lstm_state_'+str(idx+1)),
-                            tf.placeholder(tf.float32, [self.batch_size, multi_cell.state_size[idx][1]],
+                           tf.compat.v1.placeholder(tf.float32, [self.batch_size, multi_cell.state_size[idx][1]],
                                            'initial_lstm_state_'+str(idx+1)))
                             for idx in range(self.num_layers)])
 
         with tf.name_scope('embedding_layer'):
             if embedding_size > 0:
-                # self.embedding = tf.get_variable('embedding', [self.vocab_size, self.embedding_size])
-                self.embedding = tf.get_variable("word_embeddings",
+                # self.embedding = tf.compat.v1.get_variable('embedding', [self.vocab_size, self.embedding_size])
+                self.embedding = tf.compat.v1.get_variable("word_embeddings",
                     initializer=self.w2v_model.vectors.astype(np.float32))
 
             else:
@@ -118,9 +118,9 @@ class CharRNNLM(object):
         with tf.name_scope('flatten_targets'):
             flat_targets = tf.reshape(tf.concat(axis = 1, values = self.targets), [-1])
 
-        with tf.variable_scope('softmax') as sm_vs:
-            softmax_w = tf.get_variable('softmax_w', [hidden_size, vocab_size])
-            softmax_b = tf.get_variable('softmax_b', [vocab_size])
+        with tf.compat.v1.variable_scope('softmax') as sm_vs:
+            softmax_w = tf.compat.v1.get_variable('softmax_w', [hidden_size, vocab_size])
+            softmax_b = tf.compat.v1.get_variable('softmax_b', [vocab_size])
             self.logits = tf.matmul(flat_outputs, softmax_w) + softmax_b
             self.probs = tf.nn.softmax(self.logits)
 
@@ -150,10 +150,10 @@ class CharRNNLM(object):
         self.summaries = tf.summary.merge(
                 inputs = [average_loss_summary, ppl_summary], name='loss_monitor')
 
-        self.global_step = tf.get_variable('global_step', [], initializer=tf.constant_initializer(0.0))
+        self.global_step = tf.compat.v1.get_variable('global_step', [], initializer=tf.constant_initializer(0.0))
 
         # self.learning_rate = tf.constant(learning_rate)
-        self.learning_rate = tf.placeholder(tf.float32, [], name='learning_rate')
+        self.learning_rate =tf.compat.v1.placeholder(tf.float32, [], name='learning_rate')
 
         if is_training:
             tvars = tf.trainable_variables()

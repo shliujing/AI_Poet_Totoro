@@ -6,7 +6,7 @@ import time
 import random
 import numpy as np
 import tensorflow as tf
-
+tf.compat.v1.disable_v2_behavior
 from tensorflow.contrib import legacy_seq2seq as seq2seq
 
 
@@ -88,9 +88,9 @@ class Model():
             args.batch_size = 1
             args.seq_length = 1
         with tf.name_scope('inputs'):
-            self.input_data = tf.placeholder(
+            self.input_data =tf.compat.v1.placeholder(
                 tf.int32, [args.batch_size, args.seq_length])
-            self.target_data = tf.placeholder(
+            self.target_data =tf.compat.v1.placeholder(
                 tf.int32, [args.batch_size, args.seq_length])
 
         with tf.name_scope('model'):
@@ -100,12 +100,12 @@ class Model():
             self.cell = tf.nn.rnn_cell.MultiRNNCell(self.cell)
             self.initial_state = self.cell.zero_state(
                 args.batch_size, tf.float32)
-            with tf.variable_scope('rnnlm'):
-                w = tf.get_variable(
+            with tf.compat.v1.variable_scope('rnnlm'):
+                w = tf.compat.v1.get_variable(
                     'softmax_w', [args.state_size, data.vocab_size])
-                b = tf.get_variable('softmax_b', [data.vocab_size])
+                b = tf.compat.v1.get_variable('softmax_b', [data.vocab_size])
                 with tf.device("/cpu:0"):
-                    embedding = tf.get_variable(
+                    embedding = tf.compat.v1.get_variable(
                         'embedding', [data.vocab_size, args.state_size])
                     inputs = tf.nn.embedding_lookup(embedding, self.input_data)
             outputs, last_state = tf.nn.dynamic_rnn(
@@ -126,7 +126,7 @@ class Model():
             tf.summary.scalar('loss', self.cost)
 
         with tf.name_scope('optimize'):
-            self.lr = tf.placeholder(tf.float32, [])
+            self.lr =tf.compat.v1.placeholder(tf.float32, [])
             tf.summary.scalar('learning_rate', self.lr)
 
             optimizer = tf.train.AdamOptimizer(self.lr)
@@ -142,9 +142,9 @@ class Model():
 
 def train(data, model, args):
     '''训练'''
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        saver = tf.train.Saver()
+    with tf.compat.v1.Session() as sess:
+        sess.run(tf.compat.v1.global_variables_initializer())
+        saver = tf.compat.v1.train.Saver()
         checkpoint = tf.train.latest_checkpoint('./'+FLAGS.cd)
         start_iter = 0
         if checkpoint:
@@ -174,8 +174,8 @@ def train(data, model, args):
 
 
 # def compose(data, model, args):          # 诗意书写版本
-#     saver = tf.train.Saver()
-#     with tf.Session() as sess:
+#     saver = tf.compat.v1.train.Saver()
+#     with tf.compat.v1.Session() as sess:
 #         ckpt = tf.train.latest_checkpoint(args.log_dir)
 #         print(ckpt)
 #         saver.restore(sess, ckpt)
@@ -208,8 +208,8 @@ def train(data, model, args):
 
 def compose(data, model, args):              # 一口气高效作诗版本
     '''生成诗歌'''
-    saver = tf.train.Saver()
-    with tf.Session() as sess:
+    saver = tf.compat.v1.train.Saver()
+    with tf.compat.v1.Session() as sess:
         ckpt = tf.train.latest_checkpoint(os.path.join('./'+FLAGS.cd))
         print(ckpt)
         saver.restore(sess, ckpt)

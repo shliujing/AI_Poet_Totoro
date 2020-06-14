@@ -6,8 +6,8 @@ import shutil
 import sys
 import time
 import numpy as np
-# import tensorflow as tf
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
+tf.compat.v1.disable_v2_behavior
 from char_rnn_model import CharRNNLM
 from config_poem import config_poem_train
 from data_loader import DataLoader
@@ -89,15 +89,15 @@ def main(args=''):
         w2v_vocab_size = len(w2v.model.vocab)
         with tf.name_scope('training'):
             train_model = CharRNNLM(is_training=True,w2v_model = w2v.model,vocab_size=w2v_vocab_size, infer=False, **params)
-            tf.get_variable_scope().reuse_variables()
+            tf.compat.v1.get_variable_scope().reuse_variables()
 
         with tf.name_scope('validation'):
             valid_model = CharRNNLM(is_training=False,w2v_model = w2v.model, vocab_size=w2v_vocab_size, infer=False, **params)
 
         with tf.name_scope('evaluation'):
             test_model = CharRNNLM(is_training=False,w2v_model = w2v.model,vocab_size=w2v_vocab_size,  infer=False, **params)
-            saver = tf.train.Saver(name='model_saver')
-            best_model_saver = tf.train.Saver(name='best_model_saver')
+            saver = tf.compat.v1.train.Saver(name='model_saver')
+            best_model_saver = tf.compat.v1.train.Saver(name='best_model_saver')
 
     logging.info('Start training\n')
 
@@ -106,7 +106,7 @@ def main(args=''):
 
 
     try:
-        with tf.Session(graph=graph) as session:
+        with tf.compat.v1.Session(graph=graph) as session:
             # Version 8 changed the api of summary writer to use
             # graph instead of graph_def.
             if TF_VERSION >= 8:
@@ -123,7 +123,7 @@ def main(args=''):
             if len(args.init_model) != 0:
                 saver.restore(session, args.init_model)
             else:
-                tf.global_variables_initializer().run()
+                tf.compat.v1.global_variables_initializer().run()
 
             learning_rate = args.learning_rate
             for epoch in range(args.num_epochs):

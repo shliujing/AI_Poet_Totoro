@@ -5,8 +5,6 @@ import numpy as np
 from word2vec_helper import Word2Vec
 import math
 
-
-
 class DataLoader():
     def __init__(self, data_dir, batch_size,seq_max_length,w2v,data_type):
         self.data_dir = data_dir
