@@ -1,3 +1,24 @@
+
+## 产生条数
+
+2000 modern
+1000 男
+1000 女
+
+
+## lyrics_writer
+python main.py 0/1 -cd 华语男歌手/华语女歌手/modern/华语乐队与组合
+python main.py 1 -cd 华语女歌手
+0表示训练，1表示创作，-cd传入训练的内容，无需更改文件。
+
+
+## poet_master
+机器学习创作自由诗1、押韵诗2、藏头诗3、藏字诗4。
+python main.py 3 四个汉字 # 藏头诗：
+python main.py 4 随意数量汉字，将尽可能全部覆盖 # 藏字诗
+
+---
+
 # AI诗人-Totoro
 ![](https://travis-ci.com/ZubinGou/AI_Poet_Totoro.svg?branch=master)
 ![](https://img.shields.io/github/repo-size/ZubinGou/AI_Poet_Totoro)

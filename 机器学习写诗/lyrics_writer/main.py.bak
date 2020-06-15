@@ -1,15 +1,14 @@
 # coding=utf-8
 from __future__ import print_function
 import os
-import sqlite3
 import sys
 import time
 import random
 import numpy as np
 import tensorflow as tf
-
 tf.compat.v1.disable_v2_behavior
 from tensorflow.contrib import legacy_seq2seq as seq2seq
+
 
 '''
 使用的了sequence-to-sequence模型以及RNN网络进行歌词语义的学习以及建模
@@ -22,18 +21,18 @@ FLAGS = tf.app.flags.FLAGS
 
 class Param():
     '''训练参数设置 '''
-    batch_size = 128  # 每批数据量的大小  batch_size越小，一个batch的随机性越大，越不易收敛，
-    n_epoch = 10  # 全部样本训练几遍
-    learning_rate = 0.01  # 学习率
-    decay_steps = 1000  # 每多少batch衰减一次。 采用学习率不断衰减，梯度下降来平衡训练速度和loss损失，得到最佳学习效果
-    decay_rate = 0.9  # 衰减率
-    grad_clip = 5  # 简单粗暴的使用梯度剪切防止梯度消失/爆炸
+    batch_size = 128         # 每批数据量的大小  batch_size越小，一个batch的随机性越大，越不易收敛，
+    n_epoch = 10            # 全部样本训练几遍
+    learning_rate = 0.01    # 学习率
+    decay_steps = 1000      # 每多少batch衰减一次。 采用学习率不断衰减，梯度下降来平衡训练速度和loss损失，得到最佳学习效果
+    decay_rate = 0.9        # 衰减率
+    grad_clip = 5           # 简单粗暴的使用梯度剪切防止梯度消失/爆炸
 
-    state_size = 100  # state大小
-    num_layers = 3  # 模型层数
-    seq_length = 20  # 序列长度
-    log_dir = './logs'  # 存储日志
-    gen_num = 120  # 生成的诗歌的长度
+    state_size = 100        # state大小
+    num_layers = 3          # 模型层数
+    seq_length = 20         # 序列长度
+    log_dir = './logs'      # 存储日志
+    gen_num = 100           # 生成的诗歌的长度
 
 
 class DataGet():
@@ -61,6 +60,7 @@ class DataGet():
     def id2char(self, id):
         return self.id2char_dict[id]
 
+
     def next_batch(self):
         x_batches = []
         y_batches = []
@@ -83,15 +83,14 @@ class DataGet():
 
 class Model():
     '''核心神经网络模型'''
-
     def __init__(self, args, data, infer=False):
         if infer:
             args.batch_size = 1
             args.seq_length = 1
         with tf.name_scope('inputs'):
-            self.input_data = tf.compat.v1.placeholder(
+            self.input_data =tf.compat.v1.placeholder(
                 tf.int32, [args.batch_size, args.seq_length])
-            self.target_data = tf.compat.v1.placeholder(
+            self.target_data =tf.compat.v1.placeholder(
                 tf.int32, [args.batch_size, args.seq_length])
 
         with tf.name_scope('model'):
@@ -127,7 +126,7 @@ class Model():
             tf.summary.scalar('loss', self.cost)
 
         with tf.name_scope('optimize'):
-            self.lr = tf.compat.v1.placeholder(tf.float32, [])
+            self.lr =tf.compat.v1.placeholder(tf.float32, [])
             tf.summary.scalar('learning_rate', self.lr)
 
             optimizer = tf.train.AdamOptimizer(self.lr)
@@ -141,61 +140,12 @@ class Model():
             self.merged_op = tf.summary.merge_all()
 
 
-def dict_2_str(dictin):
-    '''
-    将字典变成，key='value',key='value' 的形式
-    '''
-    tmplist = []
-    for k, v in dictin.items():
-        tmp = "%s='%s'" % (str(k), str(v))
-        tmplist.append(' ' + tmp + ' ')
-    return ','.join(tmplist)
-
-
-def get_i_sql(table, dict):
-    '''
-    生成insert的sql语句
-    @table，插入记录的表名
-    @dict,插入的数据，字典
-    '''
-    sql = 'insert into %s set ' % table
-    sql += dict_2_str(dict)
-    return sql
-
-
-def insertDB(data):
-    conn = sqlite3.connect('../../dianping.db')
-    print("Opened database successfully")
-    c = conn.cursor()
-    # sql_todo = get_i_sql("p", datas)
-    sql_insert = "INSERT INTO p VALUES "  # SQL语句一
-    sql = "Insert Into p ({1}) Values('张三', '语文', '90')".format(table_name, fields_name)
-
-    sql_values = ""  # SQL语句二
-    print("close database successfully")
-    for i in range(0, len(datas)):  # 列表下标索引，一一提取一行数据
-        sql_values += '('  # 增加execute语句所需的左括号
-        sql_values += datas[i]  # 插入数据
-        sql_values += '),'  # 右括号
-    sql_values = sql_values.strip(',')  # 去除最后一行数据的逗号，也可replace为分号
-    sql_todo = sql_insert + sql_values  # 两个SQL分语句合并
-    print(sql_todo)
-    conn.execute(sql_todo)
-    cursor = c.execute("SELECT * from p")
-    for row in cursor:
-        print("id = ", row[0])
-
-    conn.commit()
-    conn.close()
-    print("close database successfully")
-
-
 def train(data, model, args):
     '''训练'''
     with tf.compat.v1.Session() as sess:
         sess.run(tf.compat.v1.global_variables_initializer())
         saver = tf.compat.v1.train.Saver()
-        checkpoint = tf.train.latest_checkpoint('./' + FLAGS.cd)
+        checkpoint = tf.train.latest_checkpoint('./'+FLAGS.cd)
         start_iter = 0
         if checkpoint:
             saver.restore(sess, checkpoint)
@@ -203,11 +153,11 @@ def train(data, model, args):
             start_iter += int(checkpoint.split('-')[-1])
         writer = tf.summary.FileWriter(args.log_dir, sess.graph)
         max_iter = args.n_epoch * \
-                   (data.total_len // args.seq_length) // args.batch_size
+            (data.total_len // args.seq_length) // args.batch_size
 
         for i in range(start_iter, max_iter):
             learning_rate = args.learning_rate * \
-                            (args.decay_rate ** (i // args.decay_steps))
+                (args.decay_rate ** (i // args.decay_steps))
             x_batch, y_batch = data.next_batch()
             feed_dict = {model.input_data: x_batch,
                          model.target_data: y_batch,
@@ -219,8 +169,8 @@ def train(data, model, args):
             if i % 10 == 0:
                 writer.add_summary(summary, global_step=i)
                 print('Step:{}/{}, training_loss:{:4f}'.format(i, max_iter, train_loss))
-            if i % 4000 == 0 or (i + 1) == max_iter:  # 4000个样本保存一次
-                saver.save(sess, os.path.join('./' + FLAGS.cd, 'model.ckpt'), global_step=i)
+            if i % 4000 == 0 or (i + 1) == max_iter: # 4000个样本保存一次
+                saver.save(sess, os.path.join('./'+FLAGS.cd, 'model.ckpt'), global_step=i)
 
 
 # def compose(data, model, args):          # 诗意书写版本
@@ -256,17 +206,16 @@ def train(data, model, args):
 #         return lyrics
 
 
-def compose(data, model, args, prime):  # 一口气高效作诗版本
+def compose(data, model, args):              # 一口气高效作诗版本
     '''生成诗歌'''
     saver = tf.compat.v1.train.Saver()
     with tf.compat.v1.Session() as sess:
-        ckpt = tf.train.latest_checkpoint(os.path.join('./' + FLAGS.cd))
+        ckpt = tf.train.latest_checkpoint(os.path.join('./'+FLAGS.cd))
         print(ckpt)
         saver.restore(sess, ckpt)
 
         # 用户自定义设置诗歌开头
-        # prime = input('输入开头(字词句)： ')
-
+        prime = input('输入开头(字词句)： ')
         state = sess.run(model.cell.zero_state(1, tf.float32))
 
         for word in prime[:-1]:
@@ -278,13 +227,13 @@ def compose(data, model, args, prime):  # 一口气高效作诗版本
 
         word = prime[-1]
         lyrics = prime
-        for i in range(random.randint(40, 320)):  # 诗歌长度随意
+        for i in range(random.randint(40,320)):  # 诗歌长度随意
             x = np.zeros([1, 1])
             x[0, 0] = data.char2id(word)
             feed_dict = {model.input_data: x, model.initial_state: state}
             probs, state = sess.run([model.probs, model.last_state], feed_dict)
             probs = probs[0]
-            index = -(int(abs(np.random.randn()) * 3) + 1)  # 引入随机，防止一直重复生成同一句概率最大的诗歌
+            index = -(int(abs(np.random.randn())*3)+1)  # 引入随机，防止一直重复生成同一句概率最大的诗歌
             word = data.id2char(np.argsort(probs)[index])
             lyrics += word
 
@@ -294,49 +243,42 @@ def compose(data, model, args, prime):  # 一口气高效作诗版本
 
         return lyrics
 
+
 def main(infer):
+
     args = Param()
-    data = DataGet(FLAGS.cd + '.txt', args)
+    data = DataGet(FLAGS.cd+'.txt', args)
     model = Model(args, data, infer)
     if infer:
-        prime = "我假装过去不重要却发现自己办不到"
-        poem = compose(data, model, args, prime)
-        print(poem)
-        return poem
-        # 进数据库
-
-        # print()
-        # print('-' * 40)
-        # print()
-        # for i in poem.split('\n'):
-        #     print(' ' * 6 + i + '\n')
-        # print()
-        # print('-' * 40)
-        # print()
+        poem = compose(data, model, args)
+        print()
+        print('-'*40)
+        print()
+        for i in poem.split('\n'):
+            print(' '*6 + i +'\n')
+        print()
+        print('-'*40)
+        print()
     else:
         train(data, model, args)
 
 
 if __name__ == '__main__':
-    word = main(1)
+    os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+    hlp = """
+    train:
+        python main.py 0 -cd checkpointDir
+    compose:
+        python main.py 1 -cd checkpointDir
+    """
 
-
-
-    # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-    # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-    # hlp = """
-    # train:
-    #     python main.py 0 -cd checkpointDir
-    # compose:
-    #     python main.py 1 -cd checkpointDir
-    # """
-    #
-    # if len(sys.argv) == 4:  # 判断用户传入参数是否正确
-    #     infer = int(sys.argv[1])
-    #     print('--Composing--' if infer else '--Training--')
-    #     if not os.path.exists('./' + FLAGS.cd):  # 专辑目录
-    #         os.mkdir('./' + FLAGS.cd)
-    #     main(infer)
-    # else:
-    #     print(hlp)
-    #     sys.exit(1)
+    if len(sys.argv) == 4:     # 判断用户传入参数是否正确
+        infer = int(sys.argv[1])
+        print('--Composing--' if infer else '--Training--')
+        if not os.path.exists('./'+FLAGS.cd):  # 专辑目录
+            os.mkdir('./'+FLAGS.cd)
+        main(infer)
+    else:
+        print(hlp)
+        sys.exit(1)
